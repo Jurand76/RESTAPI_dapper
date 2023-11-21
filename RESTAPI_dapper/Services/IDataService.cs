@@ -7,6 +7,6 @@ namespace RESTAPI_dapper.Services
         Product GetProductDetails(string sku);
         string CSVLoadData(string url);
         List<Product> ReadAndFilterProducts(string filePath);
-        void SaveProductsToDatabase(IEnumerable<Product> products, string connectionString);
+        void SaveProductsToDatabase(IEnumerable<Product> products);
     }
 }

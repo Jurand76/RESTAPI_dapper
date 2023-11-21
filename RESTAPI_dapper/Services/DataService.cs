@@ -5,16 +5,20 @@ using System.Globalization;
 using CsvHelper;
 using CsvHelper.Configuration;
 using System.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+using Dapper;
 
 namespace RESTAPI_dapper.Services
 {
     public class DataService : IDataService
     {
         private readonly IHttpClientFactory _clientFactory;
+        private readonly string _connectionString;
 
-        public DataService(IHttpClientFactory clientFactory)
+        public DataService(IHttpClientFactory clientFactory, IConfiguration configuration)
         {
             _clientFactory = clientFactory;
+            _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
 
         public string CSVLoadData(string url)
@@ -59,19 +63,30 @@ namespace RESTAPI_dapper.Services
 
         public List<Product> ReadAndFilterProducts(string filePath)
         {
+            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                Delimiter = ";",
+                IgnoreBlankLines = true,
+                BadDataFound = args =>
+                {
+                    Console.WriteLine($"Bad data field: {args.Field}");
+                    Console.WriteLine($"Bad data context: {args.Context}");
+                }
+            };
+
             using var reader = new StreamReader(filePath);
-            using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+            using var csv = new CsvReader(reader, config);
             csv.Context.RegisterClassMap<ProductMap>();
             return csv.GetRecords<Product>().Where(p => !p.Is_Wire && p.Shipping == "24h").ToList();
         }
 
-        public void SaveProductsToDatabase(IEnumerable<Product> products, string connectionString)
+        public void SaveProductsToDatabase(IEnumerable<Product> products)
         {
-            using var connection = new SqlConnection(connectionString);
+            using var connection = new SqlConnection(_connectionString);
             connection.Open();
             foreach (var product in products)
             {
-                var sql = "INSERT INTO Products (ID, SKU, Name, ...) VALUES (@ID, @SKU, @Name, ...)";
+                var sql = "INSERT INTO Products (ID, SKU, Name, EAN, Producer_name, Category, Is_Wire, Available, Is_Vendor, Default_Image) VALUES (@ID, @SKU, @Name, @EAN, @Producer_name, @Category, @Is_Wire, @Available, @Is_Vendor, @Default_Image)";
                 connection.Execute(sql, product);
             }
         }
