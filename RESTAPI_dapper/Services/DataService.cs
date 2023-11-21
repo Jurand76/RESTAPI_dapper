@@ -24,7 +24,7 @@ namespace RESTAPI_dapper.Services
             }
             else
             {
-                throw new Exception("Nie udało się pobrać pliku CSV.");
+                throw new Exception("Nie udało się pobrać plików CSV.");
             }
         }
 

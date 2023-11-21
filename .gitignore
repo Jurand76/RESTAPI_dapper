@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/RESTAPI_dapper/Files/Inventory.csv
+/RESTAPI_dapper/Files/Prices.csv
+/RESTAPI_dapper/Files/Products.csv
