@@ -31,6 +31,9 @@ namespace RESTAPI_dapper.Controllers
             string filePath = Path.Combine(filesPath, "Products.csv");
             System.IO.File.WriteAllText(filePath, csvContent);
 
+            var filteredProducts = _dataService.ReadAndFilterProducts(filePath);
+            _dataService.SaveProductsToDatabase(filteredProducts);
+
             csvContent = _dataService.CSVLoadData("https://rekturacjazadanie.blob.core.windows.net/zadanie/Prices.csv");
             filePath = Path.Combine(filesPath, "Prices.csv");
             System.IO.File.WriteAllText(filePath, csvContent);

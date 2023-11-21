@@ -9,6 +9,7 @@
         public string Producer_name { get; set; }
         public string Category { get; set; }
         public bool Is_Wire { get; set; }
+        public string Shipping { get; set; }
         public bool Available { get; set; }
         public bool Is_Vendor { get; set; }
         public string Default_Image { get; set; }
