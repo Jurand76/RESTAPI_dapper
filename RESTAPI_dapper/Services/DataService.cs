@@ -67,10 +67,10 @@ namespace RESTAPI_dapper.Services
             {
                 Delimiter = ";",
                 IgnoreBlankLines = true,
-                BadDataFound = args =>
+                ShouldSkipRecord = (records) =>
                 {
-                    Console.WriteLine($"Bad data field: {args.Field}");
-                    Console.WriteLine($"Bad data context: {args.Context}");
+                    Console.WriteLine("Error: ", records)
+                    return false;
                 }
             };
 
