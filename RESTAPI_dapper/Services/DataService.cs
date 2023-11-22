@@ -26,16 +26,16 @@ namespace RESTAPI_dapper.Services
         public string CSVLoadData(string url)
         {
             var httpClient = _clientFactory.CreateClient();
-            var response = httpClient.GetAsync(url).Result;  // Używamy .Result do synchronicznego pobrania wyniku
+            var response = httpClient.GetAsync(url).Result;  
 
             if (response.IsSuccessStatusCode)
             {
-                var content = response.Content.ReadAsStringAsync().Result;  // Ponownie, używamy .Result
+                var content = response.Content.ReadAsStringAsync().Result;  
                 return content;
             }
             else
             {
-                throw new Exception("Nie udało się pobrać plików CSV.");
+                throw new Exception($"Nie udało się pobrać pliku CSV z url: {url}");
             }
         }
 
@@ -66,14 +66,14 @@ namespace RESTAPI_dapper.Services
                 try
                 {
                     var product = csv.GetRecord<Product>();
-                    if (product.Shipping == "24h" && !product.Is_Wire)
+                    if (product.Shipping.Contains("24h") && !product.Is_Wire)
                     {
                         products.Add(product);
                     }
                 }
                 catch 
                 {
-                    Console.WriteLine("Reading products.csv stopped");
+                    Console.WriteLine("Reading error in products.csv");
                 }
             }
 
@@ -89,6 +89,7 @@ namespace RESTAPI_dapper.Services
             connection.Close();
             _logger.LogInformation($"All products from table {tableName} deleted!");
         }
+
         public void SaveProductsToDatabase(IEnumerable<Product> products)
         {
             using var connection = new SqlConnection(_connectionString);
@@ -107,9 +108,9 @@ namespace RESTAPI_dapper.Services
         {
             var config = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
-                Delimiter = ";",
+                Delimiter = ",",
                 IgnoreBlankLines = true,
-
+                MissingFieldFound = null
             };
 
             using var reader = new StreamReader(filePath);
@@ -122,15 +123,31 @@ namespace RESTAPI_dapper.Services
             {
                 try
                 {
-                    var product = csv.GetRecord<Inventory>();
-                    if (product.Shipping == "24h")
+                    var product = new Inventory
+                    {
+                        Product_ID = csv.GetField<int>(0),
+                        SKU = csv.GetField<string>(1),
+                        Unit = csv.GetField<string>(2),
+                        Qty = csv.GetField<decimal>(3),
+                        Manufacturer = csv.GetField<string>(4),
+                        Shipping = csv.GetField<string>(6),
+                    };
+
+                    // Attempt to get the Shipping_Cost field
+                    if (!csv.TryGetField<decimal>(7, out var shippingCost))
+                    {
+                        shippingCost = 0;  // Set to 0 if the field is missing or can't be parsed
+                    }
+                    product.Shipping_Cost = shippingCost;
+
+                    if (product.Shipping.Contains("24h"))
                     {
                         products.Add(product);
                     }
                 }
                 catch
                 {
-                    Console.WriteLine("Reading inventory.csv stopped");
+                    Console.WriteLine("Reading error in inventory.csv");
                 }
             }
 

@@ -11,3 +11,14 @@
     [Default_Image] VARCHAR (1024) NULL,
     PRIMARY KEY CLUSTERED ([ID] ASC)
 );
+
+
+CREATE TABLE [dbo].[Inventory] (
+    [Product_ID]    INT            NOT NULL,
+    [SKU]           VARCHAR (16)   NOT NULL,
+    [Unit]          VARCHAR (16)   NULL,
+    [Qty]           DECIMAL (8, 2) NULL,
+    [Manufacturer]  VARCHAR (128)  NULL,
+    [Shipping]      VARCHAR (32)   NULL,
+    [Shipping_Cost] DECIMAL (5, 2) NULL,
+);
