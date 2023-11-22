@@ -166,6 +166,87 @@ namespace RESTAPI_dapper.Services
             connection.Close();
             _logger.LogInformation("Table Inventory has been created!");
         }
+
+        public List<Prices> ReadPrices(string filePath)
+        {
+            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                Delimiter = ",",
+                IgnoreBlankLines = true,
+                MissingFieldFound = null
+            };
+
+            using var reader = new StreamReader(filePath);
+            using var csv = new CsvReader(reader, config);
+           
+            var prices = new List<Prices>();
+
+            while (csv.Read())
+            {
+                try
+                {
+                    var price = new Prices
+                    {
+                        SKU = csv.GetField<string>(1),
+                        Logistic_Unit_Price = csv.GetField<string>(5)
+                    };
+
+                    prices.Add(price);
+                    
+                }
+                catch
+                {
+                    Console.WriteLine("Reading error in inventory.csv");
+                }
+            }
+
+            return prices;
+        }
+
+        public void SavePricesToDatabase(IEnumerable<Prices> prices)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            connection.Open();
+            foreach (var price in prices)
+            {
+                var sql = "INSERT INTO Prices (SKU, Logistic_Unit_Price) VALUES (@SKU, @Logistic_Unit_Price)";
+                connection.Execute(sql, price);
+            }
+            connection.Close();
+            _logger.LogInformation("Table Prices has been created!");
+        }
+
+        public string GetProductDetailsBySku(string sku)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            var query = @"
+                SELECT 
+                    p.Name,
+                    p.EAN,
+                    p.Producer_name,
+                    p.Category,
+                    p.Default_Image,
+                    i.Qty as Stock,
+                    i.Unit,
+                    pr.Logistic_Unit_Price as NetPrice,
+                    i.Shipping_Cost
+                FROM 
+                    Products p
+                JOIN 
+                    Inventory i ON p.SKU = i.SKU
+                JOIN 
+                    Prices pr ON p.SKU = pr.SKU
+                WHERE 
+                    p.SKU = @sku;";
+
+            var result = connection.QueryFirstOrDefault(query, new { sku });
+
+            if (result == null)
+                return "Product not found";
+
+            // Formatuj wynik do postaci ciągu znaków
+            return $"{result.SKU} {result.Name} {result.EAN} {result.Producer_name}, Category: {result.Category} Stock: {result.Stock}, NetPrice: {result.NetPrice} for {result.Unit}, ShippingCost: {result.Shipping_Cost}, Image: {result.Default_Image}";
+        }
     }
 }
 

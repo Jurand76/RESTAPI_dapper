@@ -43,18 +43,29 @@ namespace RESTAPI_dapper.Controllers
             _dataService.DeleteTableDetails("Inventory");
             _dataService.SaveInventoryToDatabase(filteredInventory);
 
-            //csvContent = _dataService.CSVLoadData("https://rekturacjazadanie.blob.core.windows.net/zadanie/Prices.csv");
-            //filePath = Path.Combine(filesPath, "Prices.csv");
-            //System.IO.File.WriteAllText(filePath, csvContent);
+            csvContent = _dataService.CSVLoadData("https://rekturacjazadanie.blob.core.windows.net/zadanie/Prices.csv");
+            filePath = Path.Combine(filesPath, "Prices.csv");
+            System.IO.File.WriteAllText(filePath, csvContent);
+
+            var allPrices = _dataService.ReadPrices(filePath);
+            _dataService.DeleteTableDetails("Prices");
+            _dataService.SavePricesToDatabase(allPrices);
 
             return Ok();
         }
 
         [HttpGet("productDetails/{sku}")]
-        public void GetProductDetails(string sku)
+        public IActionResult GetProductDetails(string sku)
         {
-            // Tutaj wywołaj metodę serwisu do pobierania szczegółów produktu
-            
+            try
+            {
+                var productDetails = _dataService.GetProductDetailsBySku(sku);
+                return Ok(productDetails);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using RESTAPI_dapper.Models;
+﻿using Microsoft.AspNetCore.Mvc;
+using RESTAPI_dapper.Models;
 
 namespace RESTAPI_dapper.Services
 {
@@ -11,5 +12,8 @@ namespace RESTAPI_dapper.Services
         void SaveProductsToDatabase(IEnumerable<Product> products);
         List<Inventory> ReadAndFilterInventory(string filePath);
         void SaveInventoryToDatabase(IEnumerable<Inventory> products);
+        List<Prices> ReadPrices(string filePath);
+        void SavePricesToDatabase(IEnumerable<Prices> prices);
+        string GetProductDetailsBySku(string sku);
     }
 }
