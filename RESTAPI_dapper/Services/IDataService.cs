@@ -5,7 +5,6 @@ namespace RESTAPI_dapper.Services
 {
     public interface IDataService
     {
-        Product GetProductDetails(string sku);
         string CSVLoadData(string url);
         void DeleteTableDetails(string tableName);
         List<Product> ReadAndFilterProducts(string filePath);

@@ -39,13 +39,7 @@ namespace RESTAPI_dapper.Services
             }
         }
 
-        public Product GetProductDetails(string sku)
-        {
-            var product = new Product();
-            return product;
-        }
-
-        
+                       
         public List<Product> ReadAndFilterProducts(string filePath)
         {
             var config = new CsvConfiguration(CultureInfo.InvariantCulture)
