@@ -31,18 +31,22 @@ namespace RESTAPI_dapper.Controllers
             string filePath = Path.Combine(filesPath, "Products.csv");
             // System.IO.File.WriteAllText(filePath, csvContent);
 
-            var filteredProducts = _dataService.ReadAndFilterProducts(filePath);
-            _dataService.DeleteAllProductsDetails();
-            _dataService.SaveProductsToDatabase(filteredProducts);
+            //var filteredProducts = _dataService.ReadAndFilterProducts(filePath);
+            //_dataService.DeleteTableDetails("Products");
+            //_dataService.SaveProductsToDatabase(filteredProducts);
+
+            //csvContent = _dataService.CSVLoadData("https://rekturacjazadanie.blob.core.windows.net/zadanie/Inventory.csv");
+            filePath = Path.Combine(filesPath, "Inventory.csv");
+            //System.IO.File.WriteAllText(filePath, csvContent);
+
+            var filteredInventory = _dataService.ReadAndFilterInventory(filePath);
+            _dataService.DeleteTableDetails("Inventory");
+            _dataService.SaveInventoryToDatabase(filteredInventory);
 
             //csvContent = _dataService.CSVLoadData("https://rekturacjazadanie.blob.core.windows.net/zadanie/Prices.csv");
             //filePath = Path.Combine(filesPath, "Prices.csv");
             //System.IO.File.WriteAllText(filePath, csvContent);
 
-            //csvContent = _dataService.CSVLoadData("https://rekturacjazadanie.blob.core.windows.net/zadanie/Inventory.csv");
-            //filePath = Path.Combine(filesPath, "Inventory.csv");
-            //System.IO.File.WriteAllText(filePath, csvContent);
-                    
             return Ok();
         }
 

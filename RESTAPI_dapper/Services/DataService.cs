@@ -14,11 +14,13 @@ namespace RESTAPI_dapper.Services
     {
         private readonly IHttpClientFactory _clientFactory;
         private readonly string _connectionString;
+        private readonly ILogger<DataService> _logger;
 
-        public DataService(IHttpClientFactory clientFactory, IConfiguration configuration)
+        public DataService(IHttpClientFactory clientFactory, IConfiguration configuration, ILogger<DataService> logger)
         {
             _clientFactory = clientFactory;
             _connectionString = configuration.GetConnectionString("DefaultConnection");
+            _logger = logger;
         }
 
         public string CSVLoadData(string url)
@@ -43,24 +45,7 @@ namespace RESTAPI_dapper.Services
             return product;
         }
 
-        public class ProductMap : ClassMap<Product>
-        {
-            public ProductMap()
-            {
-                Map(m => m.ID).Name("ID");
-                Map(m => m.SKU).Name("SKU");
-                Map(m => m.Name).Name("name");
-                Map(m => m.EAN).Name("EAN");
-                Map(m => m.Producer_name).Name("producer_name");
-                Map(m => m.Category).Name("category");
-                Map(m => m.Is_Wire).Name("is_wire");
-                Map(m => m.Shipping).Name("shipping");
-                Map(m => m.Available).Name("available");
-                Map(m => m.Is_Vendor).Name("is_vendor");
-                Map(m => m.Default_Image).Name("default_image");
-            }
-        }
-
+        
         public List<Product> ReadAndFilterProducts(string filePath)
         {
             var config = new CsvConfiguration(CultureInfo.InvariantCulture)
@@ -95,13 +80,14 @@ namespace RESTAPI_dapper.Services
             return products;
         }
 
-        public void DeleteAllProductsDetails()
+        public void DeleteTableDetails(string tableName)
         {
             using var connection = new SqlConnection(_connectionString);
             connection.Open();
-            var sql = "DELETE FROM Products";
+            var sql = $"DELETE FROM {tableName}";
             connection.Execute(sql);
             connection.Close();
+            _logger.LogInformation($"All products from table {tableName} deleted!");
         }
         public void SaveProductsToDatabase(IEnumerable<Product> products)
         {
@@ -113,6 +99,56 @@ namespace RESTAPI_dapper.Services
                 connection.Execute(sql, product);
             }
             connection.Close();
+            _logger.LogInformation("Table Products has been created!");
+        }
+
+       
+        public List<Inventory> ReadAndFilterInventory(string filePath)
+        {
+            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                Delimiter = ";",
+                IgnoreBlankLines = true,
+
+            };
+
+            using var reader = new StreamReader(filePath);
+            using var csv = new CsvReader(reader, config);
+            csv.Context.RegisterClassMap<InventoryMap>();
+
+            var products = new List<Inventory>();
+
+            while (csv.Read())
+            {
+                try
+                {
+                    var product = csv.GetRecord<Inventory>();
+                    if (product.Shipping == "24h")
+                    {
+                        products.Add(product);
+                    }
+                }
+                catch
+                {
+                    Console.WriteLine("Reading inventory.csv stopped");
+                }
+            }
+
+            return products;
+        }
+                
+        public void SaveInventoryToDatabase(IEnumerable<Inventory> products)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            connection.Open();
+            foreach (var product in products)
+            {
+                var sql = "INSERT INTO Inventory (Product_ID, SKU, Unit, Qty, Manufacturer, Shipping, Shipping_Cost) VALUES (@Product_ID, @SKU, @Unit, @Qty, @Manufacturer, @Shipping, @Shipping_Cost)";
+                connection.Execute(sql, product);
+            }
+            connection.Close();
+            _logger.LogInformation("Table Inventory has been created!");
         }
     }
 }
+

@@ -6,9 +6,10 @@ namespace RESTAPI_dapper.Services
     {
         Product GetProductDetails(string sku);
         string CSVLoadData(string url);
+        void DeleteTableDetails(string tableName);
         List<Product> ReadAndFilterProducts(string filePath);
-
-        void DeleteAllProductsDetails();
         void SaveProductsToDatabase(IEnumerable<Product> products);
+        List<Inventory> ReadAndFilterInventory(string filePath);
+        void SaveInventoryToDatabase(IEnumerable<Inventory> products);
     }
 }
