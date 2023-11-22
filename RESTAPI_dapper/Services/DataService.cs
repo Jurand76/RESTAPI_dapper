@@ -67,17 +67,32 @@ namespace RESTAPI_dapper.Services
             {
                 Delimiter = ";",
                 IgnoreBlankLines = true,
-                ShouldSkipRecord = (records) =>
-                {
-                    Console.WriteLine("Error: ", records)
-                    return false;
-                }
+            
             };
 
             using var reader = new StreamReader(filePath);
             using var csv = new CsvReader(reader, config);
             csv.Context.RegisterClassMap<ProductMap>();
-            return csv.GetRecords<Product>().Where(p => !p.Is_Wire && p.Shipping == "24h").ToList();
+
+            var products = new List<Product>();
+
+            while (csv.Read())
+            {
+                try
+                {
+                    var product = csv.GetRecord<Product>();
+                    if (product.Shipping == "24h" && !product.Is_Wire)
+                    {
+                        products.Add(product);
+                    }
+                }
+                catch 
+                {
+                    Console.WriteLine("Reading products.csv stopped");
+                }
+            }
+
+            return products;
         }
 
         public void SaveProductsToDatabase(IEnumerable<Product> products)
