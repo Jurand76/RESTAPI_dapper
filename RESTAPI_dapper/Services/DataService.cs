@@ -95,6 +95,14 @@ namespace RESTAPI_dapper.Services
             return products;
         }
 
+        public void DeleteAllProductsDetails()
+        {
+            using var connection = new SqlConnection(_connectionString);
+            connection.Open();
+            var sql = "DELETE FROM Products";
+            connection.Execute(sql);
+            connection.Close();
+        }
         public void SaveProductsToDatabase(IEnumerable<Product> products)
         {
             using var connection = new SqlConnection(_connectionString);
@@ -104,6 +112,7 @@ namespace RESTAPI_dapper.Services
                 var sql = "INSERT INTO Products (ID, SKU, Name, EAN, Producer_name, Category, Is_Wire, Available, Is_Vendor, Default_Image) VALUES (@ID, @SKU, @Name, @EAN, @Producer_name, @Category, @Is_Wire, @Available, @Is_Vendor, @Default_Image)";
                 connection.Execute(sql, product);
             }
+            connection.Close();
         }
     }
 }
