@@ -23,6 +23,7 @@ namespace RESTAPI_dapper.Services
             _logger = logger;
         }
 
+        // Ładowanie danych z pliku CSV
         public string CSVLoadData(string url)
         {
             var httpClient = _clientFactory.CreateClient();
@@ -39,7 +40,20 @@ namespace RESTAPI_dapper.Services
             }
         }
 
-                       
+
+        // Usuwanie zawartości tabeli bazy danych - parametr nazwa tabeli. 
+        public void DeleteTableDetails(string tableName)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            connection.Open();
+            var sql = $"DELETE FROM {tableName}";
+            connection.Execute(sql);
+            connection.Close();
+            _logger.LogInformation($"All products from table {tableName} deleted!");
+        }
+
+
+        // Odczyt pliku z produktami, filtrowanie wg wytycznych - produkty wysyłane w przeciągu 24h
         public List<Product> ReadAndFilterProducts(string filePath)
         {
             var config = new CsvConfiguration(CultureInfo.InvariantCulture)
@@ -74,16 +88,8 @@ namespace RESTAPI_dapper.Services
             return products;
         }
 
-        public void DeleteTableDetails(string tableName)
-        {
-            using var connection = new SqlConnection(_connectionString);
-            connection.Open();
-            var sql = $"DELETE FROM {tableName}";
-            connection.Execute(sql);
-            connection.Close();
-            _logger.LogInformation($"All products from table {tableName} deleted!");
-        }
 
+        // Zapis listy produktów do bazy danych
         public void SaveProductsToDatabase(IEnumerable<Product> products)
         {
             using var connection = new SqlConnection(_connectionString);
@@ -98,6 +104,7 @@ namespace RESTAPI_dapper.Services
         }
 
        
+        // Odczyt pliku ze stanami magazynowymi, filtrowanie wg wytycznych - produkty, które są wysyłane w przeciągu 24h
         public List<Inventory> ReadAndFilterInventory(string filePath)
         {
             var config = new CsvConfiguration(CultureInfo.InvariantCulture)
@@ -147,7 +154,9 @@ namespace RESTAPI_dapper.Services
 
             return products;
         }
-                
+
+
+        // Zapis magazynu do bazy danych
         public void SaveInventoryToDatabase(IEnumerable<Inventory> products)
         {
             using var connection = new SqlConnection(_connectionString);
@@ -161,6 +170,8 @@ namespace RESTAPI_dapper.Services
             _logger.LogInformation("Table Inventory has been created!");
         }
 
+
+        // Odczyt tabeli z cenami produktów
         public List<Prices> ReadPrices(string filePath)
         {
             var config = new CsvConfiguration(CultureInfo.InvariantCulture)
@@ -197,6 +208,8 @@ namespace RESTAPI_dapper.Services
             return prices;
         }
 
+
+        // Zapis tabeli z cenami produktów do bazy danych
         public void SavePricesToDatabase(IEnumerable<Prices> prices)
         {
             using var connection = new SqlConnection(_connectionString);
@@ -210,6 +223,8 @@ namespace RESTAPI_dapper.Services
             _logger.LogInformation("Table Prices has been created!");
         }
 
+
+        // Odczyt danych dotyczących produktu o określonym SKU, wg założenia zadania
         public string GetProductDetailsBySku(string sku)
         {
             using var connection = new SqlConnection(_connectionString);
@@ -236,9 +251,9 @@ namespace RESTAPI_dapper.Services
             var result = connection.QueryFirstOrDefault(query, new { sku });
 
             if (result == null)
-                return "Product not found";
+                return "Product not found";                     // Jeśli produkt nie został znaleziony, wysyłany jest stosowny komunikat
 
-            // Formatuj wynik do postaci ciągu znaków
+            // String wysyłany do endpointu
             return $"{result.SKU} {result.Name} {result.EAN} {result.Producer_name}, Category: {result.Category} Stock: {result.Stock}, NetPrice: {result.NetPrice} for {result.Unit}, ShippingCost: {result.Shipping_Cost}, Image: {result.Default_Image}";
         }
     }
