@@ -134,10 +134,10 @@ namespace RESTAPI_dapper.Services
                         Shipping = csv.GetField<string>(6),
                     };
 
-                    // Attempt to get the Shipping_Cost field
+                    // Próba odczytu pola Shipping_Cost, jeśli jest puste - przyjęcie domyślnej ceny 0
                     if (!csv.TryGetField<decimal>(7, out var shippingCost))
                     {
-                        shippingCost = 0;  // Set to 0 if the field is missing or can't be parsed
+                        shippingCost = 0;  
                     }
                     product.Shipping_Cost = shippingCost;
 
