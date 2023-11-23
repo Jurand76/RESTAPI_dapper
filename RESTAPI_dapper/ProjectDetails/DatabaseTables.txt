@@ -22,3 +22,8 @@ CREATE TABLE [dbo].[Inventory] (
     [Shipping]      VARCHAR (32)   NULL,
     [Shipping_Cost] DECIMAL (5, 2) NULL,
 );
+
+CREATE TABLE [dbo].[Prices] (
+    [SKU]                 VARCHAR (16) NOT NULL,
+    [Logistic_Unit_Price] VARCHAR (10) NOT NULL
+);
